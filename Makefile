@@ -1,7 +1,7 @@
 # CONFIGS
 COMPILER = clang
 MAIN = ./main.c
-FLAGS = -Wall -Werror -O3
+FLAGS = -Wall -Werror -O3 -lm
 OUTPUT = ./main
 IMPL = ./src/hidden_layer.c ./src/layer.c ./src/perceptron.c ./src/neural_network.c
 

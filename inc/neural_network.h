@@ -15,7 +15,8 @@ void InitInputLayer(NeuralNetwork *nn, size_t capacity);
 void InitHiddenLayer(NeuralNetwork *nn);
 
 void AddHiddenLayer(NeuralNetwork *nn, size_t capacity,
-                    enum ActivationType activation_type);
+                    enum ActivationType activation_type,
+                    enum DistributionType distribution_type);
 
 void PrintNeuralNetwork(NeuralNetwork nn);
 

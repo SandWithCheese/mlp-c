@@ -11,9 +11,10 @@ enum LayerType {
 };
 
 enum ActivationType {
-  NONE, // Default if layer type = INPUT
+  ACTIVATION_NONE, // Default if layer type = INPUT
   RELU,
   SIGMOID,
+  TANH,
 };
 
 typedef struct {
@@ -25,10 +26,11 @@ typedef struct {
 } Layer;
 
 void InitLayer(Layer *layer, size_t capacity, enum LayerType layer_type,
-               enum ActivationType activation_type);
+               enum ActivationType activation_type,
+               enum DistributionType distribution_type);
 
 double Predict(Layer *layer, enum ActivationType type);
 
-double ActivationFunction(enum ActivationType type);
+double ActivationFunction(enum ActivationType type, double output);
 
 #endif
