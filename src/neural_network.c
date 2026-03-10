@@ -20,6 +20,13 @@ void AddHiddenLayer(NeuralNetwork *nn, size_t capacity,
   AddLayer(&(nn->hidden_layer), &layer);
 }
 
+void FeedForward(NeuralNetwork *nn) {
+  Predict(&(nn->input_layer), &(nn->hidden_layer.layers[0]));
+  for (int i = 1; i < nn->hidden_layer.count; i++) {
+    Predict(&(nn->hidden_layer.layers[i - 1]), &(nn->hidden_layer.layers[i]));
+  }
+}
+
 void PrintNeuralNetwork(NeuralNetwork nn) {
   printf("Input Layer\n");
   printf("Count: %zu, Capacity: %zu, LayerType: %d, ActivationType: %d\n\n",

@@ -14,13 +14,17 @@ void InitLayer(Layer *layer, size_t capacity, enum LayerType layer_type,
   }
 }
 
-// double Predict(Layer *layer, enum ActivationType type) {
-//   double sum = 0;
-//   for (int i = 0; i < layer->count; i++) {
-//     Perceptron p = layer->perceptrons[i * sizeof(*layer)];
-//     sum += Calculate(p, )
-//   }
-// }
+void Predict(Layer *previous_layer, Layer *current_layer) {
+  for (int i = 0; i < current_layer->count; i++) {
+    double sum = 0;
+    for (int j = 0; j < previous_layer->count; j++) {
+      sum += Calculate(current_layer->perceptrons[i],
+                       previous_layer->perceptrons[j].output);
+    }
+    current_layer->perceptrons[i].output =
+        ActivationFunction(current_layer->activation_type, sum);
+  }
+}
 
 double ActivationFunction(enum ActivationType type, double output) {
   switch (type) {

@@ -18,6 +18,8 @@ void AddHiddenLayer(NeuralNetwork *nn, size_t capacity,
                     enum ActivationType activation_type,
                     enum DistributionType distribution_type);
 
+void FeedForward(NeuralNetwork *nn);
+
 void PrintNeuralNetwork(NeuralNetwork nn);
 
 #endif

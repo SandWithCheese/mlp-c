@@ -29,7 +29,7 @@ void InitLayer(Layer *layer, size_t capacity, enum LayerType layer_type,
                enum ActivationType activation_type,
                enum DistributionType distribution_type);
 
-double Predict(Layer *layer, enum ActivationType type);
+void Predict(Layer *previous_layer, Layer *current_layer);
 
 double ActivationFunction(enum ActivationType type, double output);
 
