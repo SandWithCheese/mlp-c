@@ -19,10 +19,12 @@ void InitLayer(Layer *layer, size_t capacity, enum LayerType layer_type,
 
 double ActivationFunction(enum ActivationType type) {
   switch (type) {
-  case 0:
+  case NONE:
+    break;
+  case RELU:
     // Handle for ReLU
     break;
-  case 1:
+  case SIGMOID:
     // Handle for Sigmoid
     break;
   }

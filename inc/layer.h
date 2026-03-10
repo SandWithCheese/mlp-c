@@ -11,7 +11,8 @@ enum LayerType {
 };
 
 enum ActivationType {
-  RELU, // Default if layer type = INPUT
+  NONE, // Default if layer type = INPUT
+  RELU,
   SIGMOID,
 };
 

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 void InitInputLayer(NeuralNetwork *nn, size_t capacity) {
-  InitLayer(&(nn->input_layer), capacity, 0, 0);
+  InitLayer(&(nn->input_layer), capacity, INPUT, NONE);
 }
 
 void InitHiddenLayer(NeuralNetwork *nn) {
@@ -14,7 +14,7 @@ void InitHiddenLayer(NeuralNetwork *nn) {
 void AddHiddenLayer(NeuralNetwork *nn, size_t capacity,
                     enum ActivationType activation_type) {
   Layer layer;
-  InitLayer(&layer, capacity, 1, activation_type);
+  InitLayer(&layer, capacity, HIDDEN, activation_type);
   AddLayer(&(nn->hidden_layer), &layer);
 }
 

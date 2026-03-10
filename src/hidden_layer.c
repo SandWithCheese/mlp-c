@@ -1,5 +1,4 @@
 #include "../inc/hidden_layer.h"
-#include <stdlib.h>
 
 void AddLayer(HiddenLayer *hidden_layer, Layer *layer) {
   if (hidden_layer->count >= hidden_layer->capacity) {
