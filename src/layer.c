@@ -40,3 +40,63 @@ double ActivationFunction(enum ActivationType type, double output) {
 
   return 0;
 }
+
+double MeanSquaredError(Layer *output_layer, Layer *label_layer) {
+  double sum = 0;
+  for (int i = 0; i < label_layer->count; i++) {
+    sum += pow(label_layer->perceptrons[i].output -
+                   output_layer->perceptrons[i].output,
+               2);
+  }
+
+  return sum / label_layer->count;
+}
+
+double MeanAbsoluteError(Layer *output_layer, Layer *label_layer) {
+  double sum = 0;
+  for (int i = 0; i < label_layer->count; i++) {
+    sum += fabs(label_layer->perceptrons[i].output -
+                output_layer->perceptrons[i].output);
+  }
+
+  return sum / label_layer->count;
+}
+
+double BinaryCrossEntropyLoss(Layer *output_layer, Layer *label_layer) {
+  const double eps = 1e-15;
+  double sum = 0;
+  for (int i = 0; i < label_layer->count; i++) {
+    double y_hat = fmax(eps, fmin(1.0 - eps, output_layer->perceptrons[i].output));
+    double y = label_layer->perceptrons[i].output;
+    sum += y * log(y_hat) + (1 - y) * log(1 - y_hat);
+  }
+
+  return -(sum / label_layer->count);
+}
+
+double CategoricalCrossEntropyLoss(Layer *output_layer, Layer *label_layer) {
+  const double eps = 1e-15;
+  double sum = 0;
+  for (int i = 0; i < label_layer->count; i++) {
+    double y_hat = fmax(eps, output_layer->perceptrons[i].output);
+    sum += label_layer->perceptrons[i].output * log(y_hat);
+  }
+
+  return -sum;
+}
+
+double LossFunction(enum LossType type, Layer *output_layer,
+                    Layer *label_layer) {
+  switch (type) {
+  case MSE:
+    return MeanSquaredError(output_layer, label_layer);
+  case MAE:
+    return MeanAbsoluteError(output_layer, label_layer);
+  case BINARY_CTL:
+    return BinaryCrossEntropyLoss(output_layer, label_layer);
+  case CATEGORICAL_CTL:
+    return CategoricalCrossEntropyLoss(output_layer, label_layer);
+  }
+
+  return 0;
+}

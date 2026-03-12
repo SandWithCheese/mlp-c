@@ -27,6 +27,16 @@ void FeedForward(NeuralNetwork *nn) {
   }
 }
 
+void BackPropagation(NeuralNetwork *nn, enum LossType loss_type,
+                     Layer *label_layer) {
+  size_t last_layer_idx = nn->hidden_layer.count - 1;
+  Layer output_layer = nn->hidden_layer.layers[last_layer_idx];
+  double loss = LossFunction(loss_type, &output_layer, label_layer);
+  printf("Loss: %lf\n", loss);
+
+  // TODO: Implement backprop
+}
+
 void PrintNeuralNetwork(NeuralNetwork nn) {
   printf("Input Layer\n");
   printf("Count: %zu, Capacity: %zu, LayerType: %d, ActivationType: %d\n\n",

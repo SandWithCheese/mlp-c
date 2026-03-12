@@ -8,6 +8,7 @@
 enum LayerType {
   INPUT,
   HIDDEN,
+  LABEL,
 };
 
 enum ActivationType {
@@ -16,6 +17,8 @@ enum ActivationType {
   SIGMOID,
   TANH,
 };
+
+enum LossType { MSE, MAE, BINARY_CTL, CATEGORICAL_CTL };
 
 typedef struct {
   Perceptron *perceptrons;
@@ -32,5 +35,16 @@ void InitLayer(Layer *layer, size_t capacity, enum LayerType layer_type,
 void Predict(Layer *previous_layer, Layer *current_layer);
 
 double ActivationFunction(enum ActivationType type, double output);
+
+double MeanSquaredError(Layer *output_layer, Layer *label_layer);
+
+double MeanAbsoluteError(Layer *output_layer, Layer *label_layer);
+
+double BinaryCrossEntropyLoss(Layer *output_layer, Layer *label_layer);
+
+double CategoricalCrossEntropyLoss(Layer *output_layer, Layer *label_layer);
+
+double LossFunction(enum LossType type, Layer *output_layer,
+                    Layer *label_layer);
 
 #endif
