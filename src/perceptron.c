@@ -14,8 +14,20 @@ double RandomNormal(double mu, double sigma) {
   return mu + sigma * z;
 }
 
+double RandomHE(double mu, double n) { return RandomNormal(mu, sqrt(2 / n)); }
+
+double RandomUniformHavier(double input, double output) {
+  double x = sqrt(6 / (input + output));
+  return RandomUniform(-x, x);
+}
+
+double RandomNormalHavier(double input, double output) {
+  double sigma = sqrt(2 / (input + output));
+  return RandomNormal(0, sigma);
+}
+
 void InitPerceptron(Perceptron *perceptron, size_t previous_layer_capacity,
-                    enum DistributionType type) {
+                    size_t capacity, enum DistributionType type) {
   switch (type) {
   case DISTRIBUTION_NONE:
     perceptron->weights.weights = NULL;
@@ -48,6 +60,47 @@ void InitPerceptron(Perceptron *perceptron, size_t previous_layer_capacity,
       perceptron->weights.weights[i] = RandomNormal(0, 1);
     }
     perceptron->bias = RandomNormal(0, 1);
+    perceptron->output = 0;
+    perceptron->net = 0;
+    perceptron->delta = 0;
+    break;
+  case HE:
+    perceptron->weights.capacity = previous_layer_capacity;
+    perceptron->weights.count = previous_layer_capacity;
+    perceptron->weights.weights =
+        (double *)malloc(previous_layer_capacity * sizeof(double));
+    for (int i = 0; i < perceptron->weights.count; i++) {
+      perceptron->weights.weights[i] = RandomHE(0, previous_layer_capacity);
+    }
+    perceptron->bias = RandomHE(0, previous_layer_capacity);
+    perceptron->output = 0;
+    perceptron->net = 0;
+    perceptron->delta = 0;
+    break;
+  case UNIFORM_HAVIER:
+    perceptron->weights.capacity = previous_layer_capacity;
+    perceptron->weights.count = previous_layer_capacity;
+    perceptron->weights.weights =
+        (double *)malloc(previous_layer_capacity * sizeof(double));
+    for (int i = 0; i < perceptron->weights.count; i++) {
+      perceptron->weights.weights[i] =
+          RandomUniformHavier(previous_layer_capacity, capacity);
+    }
+    perceptron->bias = RandomUniformHavier(previous_layer_capacity, capacity);
+    perceptron->output = 0;
+    perceptron->net = 0;
+    perceptron->delta = 0;
+    break;
+  case NORMAL_HAVIER:
+    perceptron->weights.capacity = previous_layer_capacity;
+    perceptron->weights.count = previous_layer_capacity;
+    perceptron->weights.weights =
+        (double *)malloc(previous_layer_capacity * sizeof(double));
+    for (int i = 0; i < perceptron->weights.count; i++) {
+      perceptron->weights.weights[i] =
+          RandomNormalHavier(previous_layer_capacity, capacity);
+    }
+    perceptron->bias = RandomNormalHavier(previous_layer_capacity, capacity);
     perceptron->output = 0;
     perceptron->net = 0;
     perceptron->delta = 0;

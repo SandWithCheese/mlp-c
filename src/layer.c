@@ -10,7 +10,7 @@ void InitLayer(Layer *layer, size_t previous_layer_capacity, size_t capacity,
   layer->layer_type = layer_type;
   layer->activation_type = activation_type;
   for (int i = 0; i < layer->count; i++) {
-    InitPerceptron(&(layer->perceptrons[i]), previous_layer_capacity,
+    InitPerceptron(&(layer->perceptrons[i]), previous_layer_capacity, capacity,
                    distribution_type);
   }
 }
