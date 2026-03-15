@@ -17,6 +17,7 @@ int main() {
   AddHiddenLayer(&nn, 512, 256, RELU, UNIFORM);
   AddHiddenLayer(&nn, 256, 10, SOFTMAX, UNIFORM);
 
-  Train(&nn, train_image, train_label, NUM_TRAIN, 0.001, 10, CATEGORICAL_CTL);
+  Train(&nn, train_image, train_label, NUM_TRAIN, 0.001, 10, 0.2,
+        CATEGORICAL_CTL);
   return 0;
 }

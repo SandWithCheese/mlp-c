@@ -125,9 +125,21 @@ void PrintProgress(size_t count, size_t max) {
   fflush(stdout);
 }
 
+void ShuffleIndices(int *indices, size_t n) {
+  if (n > 1) {
+    for (size_t i = 0; i < n - 1; i++) {
+      size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+
+      int t = indices[j];
+      indices[j] = indices[i];
+      indices[i] = t;
+    }
+  }
+}
+
 void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
            size_t num_samples, double learning_rate, size_t epochs,
-           enum LossType loss_type) {
+           double validation_ratio, enum LossType loss_type) {
   size_t last_layer_idx = nn->hidden_layer.count - 1;
   Layer *output_layer = &nn->hidden_layer.layers[last_layer_idx];
 
@@ -135,34 +147,116 @@ void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
   InitLayer(&label_layer, 0, output_layer->count, LABEL, ACTIVATION_NONE,
             DISTRIBUTION_NONE);
 
+  int *indices = malloc(num_samples * sizeof(int));
+  for (size_t i = 0; i < num_samples; i++) {
+    indices[i] = i;
+  }
+
   for (int i = 0; i < epochs; i++) {
-    double error_sum = 0;
+    ShuffleIndices(indices, num_samples);
+    int split_idx = num_samples * (1 - validation_ratio);
     printf("Epoch %d\n", i + 1);
 
-    for (int j = 0; j < num_samples; j++) {
-      if (j % 1000 == 0) {
-        PrintProgress(j, num_samples);
+    double training_loss = 0;
+    double correct_training_predictions = 0;
+    printf("Training\n");
+    for (int j = 0; j < split_idx; j++) {
+      int idx = indices[j];
+
+      if (j % 1000 == 0 || j == split_idx - 1) {
+        PrintProgress(j, split_idx - 1);
       }
+
       for (int k = 0; k < nn->input_layer.count; k++) {
-        nn->input_layer.perceptrons[k].output = train_data[j][k];
+        nn->input_layer.perceptrons[k].output = train_data[idx][k];
       }
 
       for (int k = 0; k < output_layer->count; k++) {
-        label_layer.perceptrons[k].output = (k == train_label[j]) ? 1.0 : 0.0;
+        label_layer.perceptrons[k].output = (k == train_label[idx]) ? 1.0 : 0.0;
       }
 
       FeedForward(nn);
 
+      double argmax = nn->hidden_layer.layers[nn->hidden_layer.count - 1]
+                          .perceptrons[0]
+                          .output;
+      int max_index = 0;
+      for (int k = 1;
+           k < nn->hidden_layer.layers[nn->hidden_layer.count - 1].count; k++) {
+        if (nn->hidden_layer.layers[nn->hidden_layer.count - 1]
+                .perceptrons[k]
+                .output > argmax) {
+          argmax = nn->hidden_layer.layers[nn->hidden_layer.count - 1]
+                       .perceptrons[k]
+                       .output;
+          max_index = k;
+        }
+      }
+
       double loss = CalculateLoss(nn, &label_layer, loss_type);
-      error_sum += loss;
+      training_loss += loss;
+
+      if (train_label[idx] == max_index) {
+        correct_training_predictions += 1;
+      }
 
       BackPropagation(nn, &label_layer, loss_type, learning_rate);
     }
 
-    printf("\nLoss: %lf\n", error_sum);
+    double validation_loss = 0;
+    double correct_validation_predictions = 0;
+    printf("\nValidating\n");
+    for (int j = split_idx; j < num_samples; j++) {
+      int idx = indices[j];
+
+      if (j % 1000 == 0 || j == num_samples - 1) {
+        PrintProgress(j - split_idx, num_samples - split_idx - 1);
+      }
+
+      for (int k = 0; k < nn->input_layer.count; k++) {
+        nn->input_layer.perceptrons[k].output = train_data[idx][k];
+      }
+
+      for (int k = 0; k < output_layer->count; k++) {
+        label_layer.perceptrons[k].output = (k == train_label[idx]) ? 1.0 : 0.0;
+      }
+
+      FeedForward(nn);
+
+      double argmax = nn->hidden_layer.layers[nn->hidden_layer.count - 1]
+                          .perceptrons[0]
+                          .output;
+      int max_index = 0;
+      for (int k = 1;
+           k < nn->hidden_layer.layers[nn->hidden_layer.count - 1].count; k++) {
+        if (nn->hidden_layer.layers[nn->hidden_layer.count - 1]
+                .perceptrons[k]
+                .output > argmax) {
+          argmax = nn->hidden_layer.layers[nn->hidden_layer.count - 1]
+                       .perceptrons[k]
+                       .output;
+          max_index = k;
+        }
+      }
+
+      double loss = CalculateLoss(nn, &label_layer, loss_type);
+      validation_loss += loss;
+
+      if (train_label[idx] == max_index) {
+        correct_validation_predictions += 1;
+      }
+    }
+
+    printf("\nTraining Loss: %lf, Training Accuracy: %lf, Validation Loss: "
+           "%lf, Validation Accuracy: %lf\n",
+           training_loss, correct_training_predictions / split_idx,
+           validation_loss,
+           correct_validation_predictions / (num_samples - split_idx));
 
     SaveNeuralNetwork(nn, "./weights/best.tpl");
   }
+
+  free(indices);
 }
 
 void SaveNeuralNetwork(NeuralNetwork *nn, const char *filename) {
