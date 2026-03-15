@@ -26,6 +26,8 @@ double CalculateLoss(NeuralNetwork *nn, Layer *label_layer,
 void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
                      enum LossType loss_type, double learning_rate);
 
+void PrintProgress(size_t count, size_t max);
+
 void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
            size_t num_samples, double learning_rate, size_t epochs,
            enum LossType loss_type);

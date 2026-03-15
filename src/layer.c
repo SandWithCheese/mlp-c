@@ -25,6 +25,7 @@ void Calculate(Perceptron *perceptron, Layer previous_layer) {
 }
 
 void Predict(Layer *previous_layer, Layer *current_layer) {
+#pragma omp parallel for
   for (int i = 0; i < current_layer->count; i++) {
     Calculate(&(current_layer->perceptrons[i]), *previous_layer);
   }

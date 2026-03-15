@@ -58,6 +58,7 @@ void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
   // Calculate delta for all hidden layers
   for (int i = last_layer_idx - 1; i >= 0; i--) {
     Layer *current_layer = &nn->hidden_layer.layers[i];
+#pragma omp parallel for
     for (int j = 0; j < current_layer->count; j++) {
       double delta = 0;
       Layer next_layer = nn->hidden_layer.layers[i + 1];
@@ -76,6 +77,7 @@ void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
   // Update weights for first hidden layer (previous = input layer)
   Layer *input_layer = &nn->input_layer;
   Layer *first_hidden_layer = &nn->hidden_layer.layers[0];
+#pragma omp parallel for
   for (int i = 0; i < first_hidden_layer->count; i++) {
     Perceptron *current_perceptron = &first_hidden_layer->perceptrons[i];
     for (int j = 0; j < current_perceptron->weights.count; j++) {
@@ -91,6 +93,7 @@ void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
   for (int i = 1; i < nn->hidden_layer.count; i++) {
     Layer *current_layer = &nn->hidden_layer.layers[i];
     Layer *previous_layer = &nn->hidden_layer.layers[i - 1];
+#pragma omp parallel for
     for (int j = 0; j < current_layer->count; j++) {
       Perceptron *current_perceptron = &current_layer->perceptrons[j];
       for (int k = 0; k < current_perceptron->weights.count; k++) {
@@ -101,6 +104,24 @@ void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
       current_perceptron->bias -= learning_rate * current_perceptron->delta;
     }
   }
+}
+
+void PrintProgress(size_t count, size_t max) {
+  const int bar_width = 50;
+
+  float progress = (float)count / max;
+  int bar_length = progress * bar_width;
+
+  printf("\rProgress: [");
+  for (int i = 0; i < bar_length; ++i) {
+    printf("#");
+  }
+  for (int i = bar_length; i < bar_width; ++i) {
+    printf(" ");
+  }
+  printf("] %.2f%%", progress * 100);
+
+  fflush(stdout);
 }
 
 void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
@@ -118,6 +139,9 @@ void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
     printf("Epoch %d\n", i + 1);
 
     for (int j = 0; j < num_samples; j++) {
+      if (j % 1000 == 0) {
+        PrintProgress(j, num_samples);
+      }
       for (int k = 0; k < nn->input_layer.count; k++) {
         nn->input_layer.perceptrons[k].output = train_data[j][k];
       }
@@ -134,7 +158,7 @@ void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
       BackPropagation(nn, &label_layer, loss_type, learning_rate);
     }
 
-    printf("Loss: %lf\n", error_sum);
+    printf("\nLoss: %lf\n", error_sum);
   }
 }
 
