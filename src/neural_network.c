@@ -259,6 +259,40 @@ void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
   free(indices);
 }
 
+void Inference(NeuralNetwork *nn, double test_data[][784], int *test_label,
+               size_t num_samples) {
+  size_t last_layer_idx = nn->hidden_layer.count - 1;
+  Layer *output_layer = &nn->hidden_layer.layers[last_layer_idx];
+
+  double correct_predictions = 0;
+  printf("Inference\n");
+  for (int i = 0; i < num_samples; i++) {
+    if (i % 1000 == 0 || i == num_samples - 1) {
+      PrintProgress(i, num_samples - 1);
+    }
+
+    for (int j = 0; j < nn->input_layer.count; j++) {
+      nn->input_layer.perceptrons[j].output = test_data[i][j];
+    }
+
+    FeedForward(nn);
+
+    double argmax = output_layer->perceptrons[0].output;
+    int max_index = 0;
+    for (int j = 1; j < output_layer->count; j++) {
+      if (output_layer->perceptrons[j].output > argmax) {
+        argmax = output_layer->perceptrons[j].output;
+        max_index = j;
+      }
+    }
+
+    if (test_label[i] == max_index) {
+      correct_predictions += 1;
+    }
+  }
+  printf("\nTest Accuracy: %lf\n", correct_predictions / num_samples);
+}
+
 void SaveNeuralNetwork(NeuralNetwork *nn, const char *filename) {
   double w_val, bias, output, net, delta;
   int layer_type, activation_type;

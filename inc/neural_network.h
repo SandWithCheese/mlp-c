@@ -34,6 +34,9 @@ void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
            size_t num_samples, double learning_rate, size_t epochs,
            double validation_ratio, enum LossType loss_type);
 
+void Inference(NeuralNetwork *nn, double test_data[][784], int *test_label,
+           size_t num_samples);
+
 void SaveNeuralNetwork(NeuralNetwork *nn, const char *filename);
 
 void LoadNeuralNetwork(NeuralNetwork *nn, const char *filename);
