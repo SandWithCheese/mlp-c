@@ -16,6 +16,7 @@ enum ActivationType {
   RELU,
   SIGMOID,
   TANH,
+  SOFTMAX,
 };
 
 enum LossType { MSE, MAE, BINARY_CTL, CATEGORICAL_CTL };
@@ -43,6 +44,8 @@ void SigmoidFunction(Layer *layer);
 double DSigmoidFunction(double x);
 
 void TanhFunction(Layer *layer);
+
+void SoftmaxFunction(Layer *layer);
 
 void ActivationFunction(enum ActivationType type, Layer *layer);
 

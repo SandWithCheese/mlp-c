@@ -52,6 +52,24 @@ void TanhFunction(Layer *layer) {
   }
 }
 
+void SoftmaxFunction(Layer *layer) {
+  double max_net = layer->perceptrons[0].net;
+  for (int j = 1; j < layer->count; j++) {
+    if (layer->perceptrons[j].net > max_net)
+      max_net = layer->perceptrons[j].net;
+  }
+
+  double sum = 0;
+  for (int j = 0; j < layer->count; j++) {
+    sum += exp(layer->perceptrons[j].net - max_net);
+  }
+
+  for (int i = 0; i < layer->count; i++) {
+    layer->perceptrons[i].output =
+        exp(layer->perceptrons[i].net - max_net) / sum;
+  }
+}
+
 void ActivationFunction(enum ActivationType type, Layer *layer) {
   switch (type) {
   case ACTIVATION_NONE:
@@ -64,6 +82,9 @@ void ActivationFunction(enum ActivationType type, Layer *layer) {
     return;
   case TANH:
     TanhFunction(layer);
+    return;
+  case SOFTMAX:
+    SoftmaxFunction(layer);
     return;
   }
 
@@ -80,6 +101,10 @@ double DerivativeActivationFunction(enum ActivationType type, double net) {
     return DSigmoidFunction(net) * (1 - DSigmoidFunction(net));
   case TANH:
     return 1 - pow(tanh(net), 2);
+  case SOFTMAX:
+    // Assuming that softmax will only be on the output layer with Categorical
+    // Cross Entropy Loss
+    return 1;
   }
 
   return 0;

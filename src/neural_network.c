@@ -42,11 +42,17 @@ void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
 
   // Calculate delta for output layer
   for (int i = 0; i < output_layer->count; i++) {
-    output_layer->perceptrons[i].delta =
-        DerivativeLossFunction(loss_type, output_layer->perceptrons[i].output,
-                               label_layer->perceptrons[i].output) *
-        DerivativeActivationFunction(output_layer->activation_type,
-                                     output_layer->perceptrons[i].net);
+    if (output_layer->activation_type == SOFTMAX &&
+        loss_type == CATEGORICAL_CTL) {
+      output_layer->perceptrons[i].delta = output_layer->perceptrons[i].output -
+                                           label_layer->perceptrons[i].output;
+    } else {
+      output_layer->perceptrons[i].delta =
+          DerivativeLossFunction(loss_type, output_layer->perceptrons[i].output,
+                                 label_layer->perceptrons[i].output) *
+          DerivativeActivationFunction(output_layer->activation_type,
+                                       output_layer->perceptrons[i].net);
+    }
   }
 
   // Calculate delta for all hidden layers
