@@ -28,12 +28,17 @@ void FeedForward(NeuralNetwork *nn) {
   }
 }
 
-void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
+double CalculateLoss(NeuralNetwork *nn, Layer *label_layer,
                      enum LossType loss_type) {
   size_t last_layer_idx = nn->hidden_layer.count - 1;
   Layer *output_layer = &nn->hidden_layer.layers[last_layer_idx];
-  double loss = LossFunction(loss_type, output_layer, label_layer);
-  printf("Loss: %lf\n", loss);
+  return LossFunction(loss_type, output_layer, label_layer);
+}
+
+void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
+                     enum LossType loss_type, double learning_rate) {
+  size_t last_layer_idx = nn->hidden_layer.count - 1;
+  Layer *output_layer = &nn->hidden_layer.layers[last_layer_idx];
 
   // Calculate delta for output layer
   for (int i = 0; i < output_layer->count; i++) {
@@ -60,6 +65,70 @@ void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
           DerivativeActivationFunction(current_layer->activation_type,
                                        current_layer->perceptrons[j].net);
     }
+  }
+
+  // Update weights for first hidden layer (previous = input layer)
+  Layer *input_layer = &nn->input_layer;
+  Layer *first_hidden_layer = &nn->hidden_layer.layers[0];
+  for (int i = 0; i < first_hidden_layer->count; i++) {
+    Perceptron *current_perceptron = &first_hidden_layer->perceptrons[i];
+    for (int j = 0; j < current_perceptron->weights.count; j++) {
+      current_perceptron->weights.weights[j] -=
+          learning_rate * current_perceptron->delta *
+          input_layer->perceptrons[j].output;
+    }
+    current_perceptron->bias -= learning_rate * current_perceptron->delta;
+  }
+
+  // Update weights for the rest of hidden layers (previous = preceding hidden
+  // layer)
+  for (int i = 1; i < nn->hidden_layer.count; i++) {
+    Layer *current_layer = &nn->hidden_layer.layers[i];
+    Layer *previous_layer = &nn->hidden_layer.layers[i - 1];
+    for (int j = 0; j < current_layer->count; j++) {
+      Perceptron *current_perceptron = &current_layer->perceptrons[j];
+      for (int k = 0; k < current_perceptron->weights.count; k++) {
+        current_perceptron->weights.weights[k] -=
+            learning_rate * current_perceptron->delta *
+            previous_layer->perceptrons[k].output;
+      }
+      current_perceptron->bias -= learning_rate * current_perceptron->delta;
+    }
+  }
+}
+
+void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
+           size_t num_samples, double learning_rate, size_t epochs,
+           enum LossType loss_type) {
+  size_t last_layer_idx = nn->hidden_layer.count - 1;
+  Layer *output_layer = &nn->hidden_layer.layers[last_layer_idx];
+
+  Layer label_layer;
+  InitLayer(&label_layer, 0, output_layer->count, LABEL, ACTIVATION_NONE,
+            DISTRIBUTION_NONE);
+
+  for (int i = 0; i < epochs; i++) {
+    double error_sum = 0;
+    printf("Epoch %d\n", i + 1);
+
+    for (int j = 0; j < num_samples; j++) {
+      for (int k = 0; k < nn->input_layer.count; k++) {
+        nn->input_layer.perceptrons[k].output = train_data[j][k];
+      }
+
+      for (int k = 0; k < output_layer->count; k++) {
+        label_layer.perceptrons[k].output = (k == train_label[j]) ? 1.0 : 0.0;
+      }
+
+      FeedForward(nn);
+
+      double loss = CalculateLoss(nn, &label_layer, loss_type);
+      error_sum += loss;
+
+      BackPropagation(nn, &label_layer, loss_type, learning_rate);
+    }
+
+    printf("Loss: %lf\n", error_sum);
   }
 }
 

@@ -20,8 +20,15 @@ void AddHiddenLayer(NeuralNetwork *nn, size_t previous_layer_capacity,
 
 void FeedForward(NeuralNetwork *nn);
 
-void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
+double CalculateLoss(NeuralNetwork *nn, Layer *label_layer,
                      enum LossType loss_type);
+
+void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
+                     enum LossType loss_type, double learning_rate);
+
+void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
+           size_t num_samples, double learning_rate, size_t epochs,
+           enum LossType loss_type);
 
 void PrintNeuralNetwork(NeuralNetwork nn);
 
