@@ -15,39 +15,59 @@ void InitLayer(Layer *layer, size_t previous_layer_capacity, size_t capacity,
   }
 }
 
-double Calculate(Perceptron *perceptron, Layer previous_layer) {
+void Calculate(Perceptron *perceptron, Layer previous_layer) {
   double net = perceptron->bias;
   for (int i = 0; i < perceptron->weights.count; i++) {
     net +=
         perceptron->weights.weights[i] * previous_layer.perceptrons[i].output;
   }
   perceptron->net = net;
-  return net;
 }
 
 void Predict(Layer *previous_layer, Layer *current_layer) {
   for (int i = 0; i < current_layer->count; i++) {
-    double net = Calculate(&(current_layer->perceptrons[i]), *previous_layer);
-    current_layer->perceptrons[i].output =
-        ActivationFunction(current_layer->activation_type, net);
+    Calculate(&(current_layer->perceptrons[i]), *previous_layer);
+  }
+
+  ActivationFunction(current_layer->activation_type, current_layer);
+}
+
+void ReLUFunction(Layer *layer) {
+  for (int i = 0; i < layer->count; i++) {
+    layer->perceptrons[i].output = fmax(0, layer->perceptrons[i].net);
   }
 }
 
-double SigmoidFunction(double x) { return 1 / (1 + exp(-x)); }
+void SigmoidFunction(Layer *layer) {
+  for (int i = 0; i < layer->count; i++) {
+    layer->perceptrons[i].output = 1 / (1 + exp(-layer->perceptrons[i].net));
+  }
+}
 
-double ActivationFunction(enum ActivationType type, double output) {
+double DSigmoidFunction(double x) { return 1 / (1 + exp(-x)); }
+
+void TanhFunction(Layer *layer) {
+  for (int i = 0; i < layer->count; i++) {
+    layer->perceptrons[i].output = tanh(layer->perceptrons[i].net);
+  }
+}
+
+void ActivationFunction(enum ActivationType type, Layer *layer) {
   switch (type) {
   case ACTIVATION_NONE:
-    return 0;
+    return;
   case RELU:
-    return fmax(0, output);
+    ReLUFunction(layer);
+    return;
   case SIGMOID:
-    return SigmoidFunction(output);
+    SigmoidFunction(layer);
+    return;
   case TANH:
-    return tanh(output);
+    TanhFunction(layer);
+    return;
   }
 
-  return 0;
+  return;
 }
 
 double DerivativeActivationFunction(enum ActivationType type, double net) {
@@ -57,7 +77,7 @@ double DerivativeActivationFunction(enum ActivationType type, double net) {
   case RELU:
     return net <= 0 ? 0 : 1;
   case SIGMOID:
-    return SigmoidFunction(net) * (1 - SigmoidFunction(net));
+    return DSigmoidFunction(net) * (1 - DSigmoidFunction(net));
   case TANH:
     return 1 - pow(tanh(net), 2);
   }

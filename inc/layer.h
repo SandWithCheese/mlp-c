@@ -32,13 +32,19 @@ void InitLayer(Layer *layer, size_t previous_layer_capacity, size_t capacity,
                enum LayerType layer_type, enum ActivationType activation_type,
                enum DistributionType distribution_type);
 
-double Calculate(Perceptron *perceptron, Layer previous_layer);
+void Calculate(Perceptron *perceptron, Layer previous_layer);
 
 void Predict(Layer *previous_layer, Layer *current_layer);
 
-double SigmoidFunction(double x);
+void ReLUFunction(Layer *layer);
 
-double ActivationFunction(enum ActivationType type, double output);
+void SigmoidFunction(Layer *layer);
+
+double DSigmoidFunction(double x);
+
+void TanhFunction(Layer *layer);
+
+void ActivationFunction(enum ActivationType type, Layer *layer);
 
 double DerivativeActivationFunction(enum ActivationType type, double net);
 
