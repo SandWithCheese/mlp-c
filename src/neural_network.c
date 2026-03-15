@@ -1,4 +1,5 @@
 #include "../inc/neural_network.h"
+#include "../lib/tpl.h"
 #include <stdio.h>
 
 void InitInputLayer(NeuralNetwork *nn, size_t capacity) {
@@ -159,7 +160,93 @@ void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
     }
 
     printf("\nLoss: %lf\n", error_sum);
+
+    SaveNeuralNetwork(nn, "./weights/best.tpl");
   }
+}
+
+void SaveNeuralNetwork(NeuralNetwork *nn, const char *filename) {
+  double w_val, bias, output, net, delta;
+  int layer_type, activation_type;
+
+  tpl_node *tn = tpl_map("A(A(A(f)ffff)ii)", &w_val, &bias, &output, &net,
+                         &delta, &layer_type, &activation_type);
+
+  for (size_t i = 0; i < nn->hidden_layer.count; i++) {
+    Layer *l = &nn->hidden_layer.layers[i];
+    layer_type = l->layer_type;
+    activation_type = l->activation_type;
+
+    for (size_t j = 0; j < l->count; j++) {
+      Perceptron *p = &l->perceptrons[j];
+      bias = p->bias;
+      output = p->output;
+      net = p->net;
+      delta = p->delta;
+
+      for (size_t k = 0; k < p->weights.count; k++) {
+        w_val = p->weights.weights[k];
+        tpl_pack(tn, 3);
+      }
+      tpl_pack(tn, 2);
+    }
+    tpl_pack(tn, 1);
+  }
+
+  tpl_dump(tn, TPL_FILE, filename);
+  tpl_free(tn);
+}
+
+void LoadNeuralNetwork(NeuralNetwork *nn, const char *filename) {
+  double w_val, bias, output, net, delta;
+  int layer_type, activation_type;
+
+  tpl_node *tn = tpl_map("A(A(A(f)ffff)ii)", &w_val, &bias, &output, &net,
+                         &delta, &layer_type, &activation_type);
+
+  if (tpl_load(tn, TPL_FILE, filename) != 0) {
+    fprintf(stderr, "Failed to load TPL file.\n");
+    tpl_free(tn);
+    return;
+  }
+
+  int layer_count = tpl_Alen(tn, 1);
+  nn->hidden_layer.layers = malloc(sizeof(Layer) * layer_count);
+  nn->hidden_layer.count = layer_count;
+  nn->hidden_layer.capacity = layer_count;
+
+  int l_idx = 0;
+  while (tpl_unpack(tn, 1) > 0) {
+    Layer *current_l = &nn->hidden_layer.layers[l_idx++];
+    current_l->layer_type = layer_type;
+    current_l->activation_type = activation_type;
+
+    int perc_count = tpl_Alen(tn, 2);
+    current_l->perceptrons = malloc(sizeof(Perceptron) * perc_count);
+    current_l->count = perc_count;
+    current_l->capacity = perc_count;
+
+    int p_idx = 0;
+    while (tpl_unpack(tn, 2) > 0) {
+      Perceptron *current_p = &current_l->perceptrons[p_idx++];
+      current_p->bias = bias;
+      current_p->output = output;
+      current_p->net = net;
+      current_p->delta = delta;
+
+      int weight_count = tpl_Alen(tn, 3);
+      current_p->weights.weights = malloc(sizeof(double) * weight_count);
+      current_p->weights.count = weight_count;
+      current_p->weights.capacity = weight_count;
+
+      int w_idx = 0;
+      while (tpl_unpack(tn, 3) > 0) {
+        current_p->weights.weights[w_idx++] = w_val;
+      }
+    }
+  }
+
+  tpl_free(tn);
 }
 
 void PrintNeuralNetwork(NeuralNetwork nn) {

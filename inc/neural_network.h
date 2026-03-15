@@ -32,6 +32,10 @@ void Train(NeuralNetwork *nn, double train_data[][784], int *train_label,
            size_t num_samples, double learning_rate, size_t epochs,
            enum LossType loss_type);
 
+void SaveNeuralNetwork(NeuralNetwork *nn, const char *filename);
+
+void LoadNeuralNetwork(NeuralNetwork *nn, const char *filename);
+
 void PrintNeuralNetwork(NeuralNetwork nn);
 
 #endif
