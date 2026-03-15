@@ -28,13 +28,19 @@ typedef struct {
   enum ActivationType activation_type;
 } Layer;
 
-void InitLayer(Layer *layer, size_t capacity, enum LayerType layer_type,
-               enum ActivationType activation_type,
+void InitLayer(Layer *layer, size_t previous_layer_capacity, size_t capacity,
+               enum LayerType layer_type, enum ActivationType activation_type,
                enum DistributionType distribution_type);
+
+double Calculate(Perceptron *perceptron, Layer previous_layer);
 
 void Predict(Layer *previous_layer, Layer *current_layer);
 
+double SigmoidFunction(double x);
+
 double ActivationFunction(enum ActivationType type, double output);
+
+double DerivativeActivationFunction(enum ActivationType type, double net);
 
 double MeanSquaredError(Layer *output_layer, Layer *label_layer);
 
@@ -46,5 +52,15 @@ double CategoricalCrossEntropyLoss(Layer *output_layer, Layer *label_layer);
 
 double LossFunction(enum LossType type, Layer *output_layer,
                     Layer *label_layer);
+
+double DerivativeMeanSquaredError(double y_hat, double y);
+
+double DerivativeMeanAbsoluteError(double y_hat, double y);
+
+double DerivativeBinaryCrossEntropyLoss(double y_hat, double y);
+
+double DerivativeCategoricalCrossEntropyLoss(double y_hat, double y);
+
+double DerivativeLossFunction(enum LossType type, double y_hat, double y);
 
 #endif

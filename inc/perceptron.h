@@ -1,10 +1,19 @@
 #ifndef PERCEPTRON_H
 #define PERCEPTRON_H
 
+#include <stdlib.h>
 typedef struct {
-  double weight;
+  double *weights;
+  size_t count;
+  size_t capacity;
+} Weights;
+
+typedef struct {
+  Weights weights;
   double bias;
   double output;
+  double net;
+  double delta;
 } Perceptron;
 
 enum DistributionType {
@@ -17,9 +26,8 @@ double RandomUniform(double low, double high);
 
 double RandomNormal(double mu, double sigma);
 
-void InitPerceptron(Perceptron *perceptron, enum DistributionType type);
-
-double Calculate(Perceptron perceptron, double value);
+void InitPerceptron(Perceptron *perceptron, size_t previous_layer_capacity,
+                    enum DistributionType type);
 
 void SaveOutput(Perceptron *perceptron, double output);
 

@@ -14,14 +14,14 @@ void InitInputLayer(NeuralNetwork *nn, size_t capacity);
 
 void InitHiddenLayer(NeuralNetwork *nn);
 
-void AddHiddenLayer(NeuralNetwork *nn, size_t capacity,
-                    enum ActivationType activation_type,
+void AddHiddenLayer(NeuralNetwork *nn, size_t previous_layer_capacity,
+                    size_t capacity, enum ActivationType activation_type,
                     enum DistributionType distribution_type);
 
 void FeedForward(NeuralNetwork *nn);
 
-void BackPropagation(NeuralNetwork *nn, enum LossType loss_type,
-                     Layer *label_layer);
+void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
+                     enum LossType loss_type);
 
 void PrintNeuralNetwork(NeuralNetwork nn);
 

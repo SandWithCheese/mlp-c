@@ -19,18 +19,20 @@ int main() {
   // nn.input_layer.perceptrons[2].output = 1;
 
   InitHiddenLayer(&nn);
-  AddHiddenLayer(&nn, 3, RELU, UNIFORM);
-  AddHiddenLayer(&nn, 2, RELU, UNIFORM);
-  AddHiddenLayer(&nn, 2, RELU, UNIFORM);
+  AddHiddenLayer(&nn, 3, 3, RELU, UNIFORM);
+  AddHiddenLayer(&nn, 3, 2, RELU, UNIFORM);
+  AddHiddenLayer(&nn, 2, 2, RELU, UNIFORM);
   PrintNeuralNetwork(nn);
   printf("-----------------------------------------------------------\n");
   FeedForward(&nn);
   Layer mock_label_layer;
-  InitLayer(&mock_label_layer, 2, LABEL, ACTIVATION_NONE, DISTRIBUTION_NONE);
+  InitLayer(&mock_label_layer, 0, 2, LABEL, ACTIVATION_NONE, DISTRIBUTION_NONE);
   mock_label_layer.perceptrons[0].output = 1;
   mock_label_layer.perceptrons[1].output = 0;
   PrintNeuralNetwork(nn);
   printf("-----------------------------------------------------------\n");
-  BackPropagation(&nn, BINARY_CTL, &mock_label_layer);
+  BackPropagation(&nn, &mock_label_layer, BINARY_CTL);
+  printf("-----------------------------------------------------------\n");
+  PrintNeuralNetwork(nn);
   return 0;
 }

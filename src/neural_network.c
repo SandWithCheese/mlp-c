@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 void InitInputLayer(NeuralNetwork *nn, size_t capacity) {
-  InitLayer(&(nn->input_layer), capacity, INPUT, ACTIVATION_NONE,
+  InitLayer(&(nn->input_layer), 0, capacity, INPUT, ACTIVATION_NONE,
             DISTRIBUTION_NONE);
 }
 
@@ -12,11 +12,12 @@ void InitHiddenLayer(NeuralNetwork *nn) {
   nn->hidden_layer.count = 0;
 }
 
-void AddHiddenLayer(NeuralNetwork *nn, size_t capacity,
-                    enum ActivationType activation_type,
+void AddHiddenLayer(NeuralNetwork *nn, size_t previous_layer_capacity,
+                    size_t capacity, enum ActivationType activation_type,
                     enum DistributionType distribution_type) {
   Layer layer;
-  InitLayer(&layer, capacity, HIDDEN, activation_type, distribution_type);
+  InitLayer(&layer, previous_layer_capacity, capacity, HIDDEN, activation_type,
+            distribution_type);
   AddLayer(&(nn->hidden_layer), &layer);
 }
 
@@ -27,14 +28,39 @@ void FeedForward(NeuralNetwork *nn) {
   }
 }
 
-void BackPropagation(NeuralNetwork *nn, enum LossType loss_type,
-                     Layer *label_layer) {
+void BackPropagation(NeuralNetwork *nn, Layer *label_layer,
+                     enum LossType loss_type) {
   size_t last_layer_idx = nn->hidden_layer.count - 1;
-  Layer output_layer = nn->hidden_layer.layers[last_layer_idx];
-  double loss = LossFunction(loss_type, &output_layer, label_layer);
+  Layer *output_layer = &nn->hidden_layer.layers[last_layer_idx];
+  double loss = LossFunction(loss_type, output_layer, label_layer);
   printf("Loss: %lf\n", loss);
 
-  // TODO: Implement backprop
+  // Calculate delta for output layer
+  for (int i = 0; i < output_layer->count; i++) {
+    output_layer->perceptrons[i].delta =
+        DerivativeLossFunction(loss_type, output_layer->perceptrons[i].output,
+                               label_layer->perceptrons[i].output) *
+        DerivativeActivationFunction(output_layer->activation_type,
+                                     output_layer->perceptrons[i].net);
+  }
+
+  // Calculate delta for all hidden layers
+  for (int i = last_layer_idx - 1; i >= 0; i--) {
+    Layer *current_layer = &nn->hidden_layer.layers[i];
+    for (int j = 0; j < current_layer->count; j++) {
+      double delta = 0;
+      Layer next_layer = nn->hidden_layer.layers[i + 1];
+      for (int k = 0; k < next_layer.count; k++) {
+        Perceptron p = next_layer.perceptrons[k];
+        delta += p.delta * p.weights.weights[j];
+      }
+
+      current_layer->perceptrons[j].delta =
+          delta *
+          DerivativeActivationFunction(current_layer->activation_type,
+                                       current_layer->perceptrons[j].net);
+    }
+  }
 }
 
 void PrintNeuralNetwork(NeuralNetwork nn) {
@@ -46,7 +72,12 @@ void PrintNeuralNetwork(NeuralNetwork nn) {
   for (int i = 0; i < nn.input_layer.count; i++) {
     printf("Perceptron %d\n", i + 1);
     Perceptron p = nn.input_layer.perceptrons[i];
-    printf("Weight: %f, Bias: %f, Output: %f\n", p.weight, p.bias, p.output);
+    printf("Weights\n");
+    for (int j = 0; j < p.weights.count; j++) {
+      printf("Weight: %lf\n", p.weights.weights[j]);
+    }
+    printf("Bias: %lf, Output: %lf, Net: %lf, Delta: %lf\n", p.bias, p.output,
+           p.net, p.delta);
   }
   printf("\n");
 
@@ -62,7 +93,12 @@ void PrintNeuralNetwork(NeuralNetwork nn) {
     for (int j = 0; j < l.count; j++) {
       printf("Perceptron %d\n", j + 1);
       Perceptron p = l.perceptrons[j];
-      printf("Weight: %f, Bias: %f, Output: %f\n", p.weight, p.bias, p.output);
+      printf("Weights\n");
+      for (int k = 0; k < p.weights.count; k++) {
+        printf("Weight: %lf\n", p.weights.weights[k]);
+      }
+      printf("Bias: %lf, Output: %lf, Net: %lf, Delta: %lf\n", p.bias, p.output,
+             p.net, p.delta);
     }
     printf("\n");
   }

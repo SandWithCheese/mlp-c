@@ -14,26 +14,46 @@ double RandomNormal(double mu, double sigma) {
   return mu + sigma * z;
 }
 
-void InitPerceptron(Perceptron *perceptron, enum DistributionType type) {
+void InitPerceptron(Perceptron *perceptron, size_t previous_layer_capacity,
+                    enum DistributionType type) {
   switch (type) {
   case DISTRIBUTION_NONE:
+    perceptron->weights.weights = NULL;
+    perceptron->weights.count = 0;
+    perceptron->weights.capacity = 0;
+    perceptron->bias = 0;
+    perceptron->output = 0;
+    perceptron->net = 0;
+    perceptron->delta = 0;
     break;
   case UNIFORM:
-    perceptron->weight = RandomUniform(-1, 1);
+    perceptron->weights.capacity = previous_layer_capacity;
+    perceptron->weights.count = previous_layer_capacity;
+    perceptron->weights.weights =
+        (double *)malloc(previous_layer_capacity * sizeof(double));
+    for (int i = 0; i < perceptron->weights.count; i++) {
+      perceptron->weights.weights[i] = RandomUniform(-1, 1);
+    }
     perceptron->bias = RandomUniform(-1, 1);
     perceptron->output = 0;
+    perceptron->net = 0;
+    perceptron->delta = 0;
     break;
   case NORMAL:
-    perceptron->weight = RandomNormal(0, 1);
+    perceptron->weights.capacity = previous_layer_capacity;
+    perceptron->weights.count = previous_layer_capacity;
+    perceptron->weights.weights =
+        (double *)malloc(previous_layer_capacity * sizeof(double));
+    for (int i = 0; i < perceptron->weights.count; i++) {
+      perceptron->weights.weights[i] = RandomNormal(0, 1);
+    }
     perceptron->bias = RandomNormal(0, 1);
     perceptron->output = 0;
+    perceptron->net = 0;
+    perceptron->delta = 0;
     break;
   }
   return;
-}
-
-double Calculate(Perceptron perceptron, double value) {
-  return perceptron.weight * value + perceptron.bias;
 }
 
 void SaveOutput(Perceptron *perceptron, double output) {
