@@ -23,7 +23,9 @@ int main(int argc, char *argv[]) {
     InitHiddenLayer(&nn);
     AddHiddenLayer(&nn, 784, 512, RELU, HE);
     AddHiddenLayer(&nn, 512, 256, RELU, HE);
-    AddHiddenLayer(&nn, 256, 10, SOFTMAX, UNIFORM_HAVIER);
+    AddHiddenLayer(&nn, 256, 128, RELU, HE);
+    AddHiddenLayer(&nn, 128, 64, RELU, HE);
+    AddHiddenLayer(&nn, 64, 10, SOFTMAX, UNIFORM_HAVIER);
 
     Train(&nn, train_image, train_label, NUM_TRAIN, 0.001, 20, 0.2,
           CATEGORICAL_CTL);
